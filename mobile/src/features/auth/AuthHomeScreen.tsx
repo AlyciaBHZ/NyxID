@@ -214,6 +214,8 @@ export function AuthHomeScreen({ navigation }: Props) {
       lastHandledSocialUrlRef.current = url;
 
       const callback = parseSocialCallback(url);
+      if (__DEV__) console.log(`[auth] Parsed callback:`, JSON.stringify(callback));
+
       if (!callback) {
         setLoginError("Unable to complete social sign-in.");
         resetSocialState();
@@ -221,6 +223,7 @@ export function AuthHomeScreen({ navigation }: Props) {
       }
 
       if (callback.status === "error") {
+        if (__DEV__) console.log(`[auth] Social auth error:`, callback.error);
         setLoginError(resolveSocialAuthError(callback.error));
         resetSocialState();
         return;
@@ -278,23 +281,29 @@ export function AuthHomeScreen({ navigation }: Props) {
 
     try {
       const authorizeUrl = mobileApi.getSocialAuthorizeUrl(provider, SOCIAL_CALLBACK_URL);
+      if (__DEV__) console.log(`[auth] Opening ${provider} auth: ${authorizeUrl}`);
+
       const result = await WebBrowser.openAuthSessionAsync(
         authorizeUrl,
         SOCIAL_CALLBACK_URL
       );
 
+      if (__DEV__) console.log(`[auth] Browser result:`, JSON.stringify(result));
+
       if (result.type === "success") {
+        if (__DEV__) console.log(`[auth] Callback URL: ${result.url}`);
         await handleSocialCallback(result.url);
         return;
       }
 
       if (result.type === "cancel" || result.type === "dismiss") {
-        setLoginError("Social sign-in was cancelled.");
+        setLoginError(`Sign-in was closed (${result.type}). Please try again.`);
         return;
       }
 
-      setLoginError("Unable to complete social sign-in.");
+      setLoginError(`Social sign-in failed: ${result.type}`);
     } catch (error) {
+      if (__DEV__) console.log(`[auth] startSocialLogin error:`, error);
       setLoginError(resolveErrorMessage(error));
     } finally {
       if (isMountedRef.current) {
