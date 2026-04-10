@@ -361,11 +361,6 @@ export function AuthHomeScreen({ navigation }: Props) {
             secureTextEntry
             autoComplete="current-password"
           />
-          {loginError && (
-            <View style={styles.errorBanner}>
-              <Text style={styles.errorText}>{loginError}</Text>
-            </View>
-          )}
           <Pressable
             onPress={() => void handleEmailLogin()}
             disabled={isEmailAuthPending || !email.trim() || !password}
@@ -422,6 +417,12 @@ export function AuthHomeScreen({ navigation }: Props) {
             .
           </Text>
         </View>
+
+        {loginError && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{loginError}</Text>
+          </View>
+        )}
       </ScrollView>
       <ToastOverlay toast={toast} bottom={64} />
     </ScreenContainer>
