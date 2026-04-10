@@ -49,6 +49,8 @@ function resolveSocialAuthError(error: string | undefined): string {
     case "social_auth_exchange":
     case "social_auth_profile":
       return "Unable to complete social sign-in.";
+    case "social_auth_registration_closed":
+      return "Registration is currently invite-only. Please use an existing account or request an invite.";
     default:
       return error || "Social sign-in failed. Please try again.";
   }
