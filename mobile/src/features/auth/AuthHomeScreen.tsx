@@ -352,7 +352,6 @@ export function AuthHomeScreen({ navigation }: Props) {
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
-            editable={!isAnyPending}
           />
           <TextInput
             style={styles.input}
@@ -362,7 +361,6 @@ export function AuthHomeScreen({ navigation }: Props) {
             onChangeText={(v) => { setPassword(v); setLoginError(null); }}
             secureTextEntry
             autoComplete="current-password"
-            editable={!isAnyPending}
           />
           {loginError && (
             <View style={styles.errorBanner}>
@@ -371,8 +369,8 @@ export function AuthHomeScreen({ navigation }: Props) {
           )}
           <Pressable
             onPress={() => void handleEmailLogin()}
-            disabled={isAnyPending || !email.trim() || !password}
-            style={[styles.signInButton, (isAnyPending || !email.trim() || !password) && styles.buttonDisabled]}
+            disabled={isEmailAuthPending || !email.trim() || !password}
+            style={[styles.signInButton, (isEmailAuthPending || !email.trim() || !password) && styles.buttonDisabled]}
           >
             <View style={styles.socialAuthContent}>
               {isEmailAuthPending ? (
