@@ -3,14 +3,13 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as WebBrowser from "expo-web-browser";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import Svg, { Circle, Path, Defs, LinearGradient, Stop } from "react-native-svg";
 import type { RootStackParamList } from "../../app/AppNavigator";
 
 import { ScreenContainer } from "../../components/ScreenContainer";
-import { SectionBadge } from "../../components/SectionBadge";
 import { ToastKind, ToastOverlay, ToastState } from "../../components/ToastOverlay";
 import { mobileApi } from "../../lib/api/mobileApi";
 import { useAuthSession } from "./AuthSessionContext";
-import { IS_DEV_BUILD } from "../../lib/env";
 import { useTheme } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/mobileTheme";
 import { createFlowStyles } from "../../theme/flowStyles";
@@ -93,6 +92,38 @@ function parseSocialCallback(url: string): SocialCallback | null {
   } catch {
     return null;
   }
+}
+
+function PortalMarkLogo() {
+  return (
+    <Svg width={80} height={80} viewBox="0 0 130 130" fill="none">
+      <Defs>
+        <LinearGradient id="pl_o" gradientUnits="userSpaceOnUse" x1="10" y1="65" x2="120" y2="65">
+          <Stop offset="0" stopColor="#A78BFA" />
+          <Stop offset="0.5" stopColor="#A78BFA" stopOpacity={0} />
+        </LinearGradient>
+        <LinearGradient id="pl_m" gradientUnits="userSpaceOnUse" x1="10" y1="65" x2="120" y2="65" gradientTransform="rotate(120 65 65)">
+          <Stop offset="0" stopColor="#C4B5FD" />
+          <Stop offset="0.5" stopColor="#C4B5FD" stopOpacity={0} />
+        </LinearGradient>
+        <LinearGradient id="pl_i" gradientUnits="userSpaceOnUse" x1="10" y1="65" x2="120" y2="65" gradientTransform="rotate(240 65 65)">
+          <Stop offset="0" stopColor="#DDD6FE" />
+          <Stop offset="0.5" stopColor="#DDD6FE" stopOpacity={0} />
+        </LinearGradient>
+        <LinearGradient id="pl_v" gradientUnits="userSpaceOnUse" x1="56" y1="62" x2="86" y2="62" gradientTransform="rotate(160 71 62)">
+          <Stop offset="0" stopColor="#C4B5FD" />
+          <Stop offset="1" stopColor="#7C3AED" />
+        </LinearGradient>
+      </Defs>
+      <Circle cx={65} cy={65} r={55} fill="none" stroke="url(#pl_o)" strokeWidth={1} />
+      <Circle cx={65} cy={65} r={40} fill="none" stroke="url(#pl_m)" strokeWidth={1} />
+      <Circle cx={65} cy={65} r={25} fill="none" stroke="url(#pl_i)" strokeWidth={0.8} />
+      <Path d="M24 0q6 8 6 20 0 12-6 20-14-4-20-12-4-14-2-24 4-4 22-4z" transform="translate(56 42)" fill="url(#pl_v)" />
+      <Circle cx={31.5} cy={49.5} r={1.5} fill="#C4B5FD" />
+      <Circle cx={39} cy={63} r={1} fill="#C4B5FD" opacity={0.5} />
+      <Circle cx={25} cy={69} r={1} fill="#C4B5FD" opacity={0.31} />
+    </Svg>
+  );
 }
 
 function SocialAuthButton({
@@ -290,6 +321,8 @@ export function AuthHomeScreen({ navigation }: Props) {
     }
   };
 
+  const isAnyPending = isSocialAuthPending || isEmailAuthPending;
+
   return (
     <ScreenContainer>
       <ScrollView
@@ -297,75 +330,80 @@ export function AuthHomeScreen({ navigation }: Props) {
         contentContainerStyle={[flowStyles.scrollContent, styles.scrollContentExtra, { paddingHorizontal: spacing.xxl }]}
         showsVerticalScrollIndicator={false}
       >
-        <SectionBadge label={IS_DEV_BUILD ? "DEV MODE" : "SOCIAL ONLY"} tone="info" />
-        <Text style={flowStyles.title}>Continue to NyxID</Text>
-        <Text style={flowStyles.subtitle}>Use Google, GitHub, or Apple to continue.</Text>
+        {/* Hero branding */}
+        <View style={styles.heroWrap}>
+          <PortalMarkLogo />
+          <Text style={styles.heroTitle}>NyxID</Text>
+          <Text style={styles.heroTagline}>Your companion for approvals and notifications</Text>
+        </View>
 
+        {/* Email login */}
         <View style={flowStyles.card}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor={colors.textMuted}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            editable={!isAnyPending}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor={colors.textMuted}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoComplete="current-password"
+            editable={!isAnyPending}
+          />
+          <Pressable
+            onPress={() => void handleEmailLogin()}
+            disabled={isAnyPending || !email.trim() || !password}
+            style={[styles.signInButton, (isAnyPending || !email.trim() || !password) && styles.buttonDisabled]}
+          >
+            <View style={styles.socialAuthContent}>
+              {isEmailAuthPending ? (
+                <ActivityIndicator size="small" color={colors.onPrimary} />
+              ) : null}
+              <Text style={styles.signInButtonText}>{isEmailAuthPending ? "Signing in..." : "Sign In"}</Text>
+            </View>
+          </Pressable>
+
+          {/* Divider */}
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Social login */}
           <SocialAuthButton
             label="Continue with Google"
             provider="google"
-            disabled={isSocialAuthPending}
+            disabled={isAnyPending}
             loading={isSocialAuthPending && pendingSocialProvider === "google"}
             onPress={() => void startSocialLogin("google")}
           />
           <SocialAuthButton
             label="Continue with GitHub"
             provider="github"
-            disabled={isSocialAuthPending}
+            disabled={isAnyPending}
             loading={isSocialAuthPending && pendingSocialProvider === "github"}
             onPress={() => void startSocialLogin("github")}
           />
           <SocialAuthButton
             label="Continue with Apple"
             provider="apple"
-            disabled={isSocialAuthPending}
+            disabled={isAnyPending}
             loading={isSocialAuthPending && pendingSocialProvider === "apple"}
             onPress={() => void startSocialLogin("apple")}
           />
 
-          {IS_DEV_BUILD && (
-            <>
-              <View style={styles.dividerRow}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>OR</Text>
-                <View style={styles.dividerLine} />
-              </View>
-              <TextInput
-                style={styles.devInput}
-                placeholder="Email"
-                placeholderTextColor={colors.textMuted}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                editable={!isEmailAuthPending}
-              />
-              <TextInput
-                style={styles.devInput}
-                placeholder="Password"
-                placeholderTextColor={colors.textMuted}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={!isEmailAuthPending}
-              />
-              <Pressable
-                onPress={() => void handleEmailLogin()}
-                disabled={isEmailAuthPending || !email.trim() || !password}
-                style={[styles.devSignInButton, (isEmailAuthPending || !email.trim() || !password) && styles.socialAuthButtonDisabled]}
-              >
-                <View style={styles.socialAuthContent}>
-                  {isEmailAuthPending ? (
-                    <ActivityIndicator size="small" color={colors.textPrimary} />
-                  ) : null}
-                  <Text style={styles.socialAuthText}>{isEmailAuthPending ? "Signing in..." : "Sign In"}</Text>
-                </View>
-              </Pressable>
-            </>
-          )}
-
+          {/* Legal */}
           <Text style={styles.legal}>
             By continuing, you agree to{" "}
             <Text style={styles.legalLink} onPress={() => navigation.navigate("TermsOfService")}>
@@ -376,9 +414,6 @@ export function AuthHomeScreen({ navigation }: Props) {
               Privacy
             </Text>
             .
-          </Text>
-          <Text style={styles.legalNote}>
-            Account deletion is permanent; signing in again with the same provider creates a new account.
           </Text>
         </View>
       </ScrollView>
@@ -391,28 +426,51 @@ const createStyles = (c: ThemeColors) => StyleSheet.create({
   scrollContentExtra: {
     paddingBottom: spacing.xxxl,
   },
-  legal: {
-    color: c.textMuted,
-    ...typeScale.caption,
-    fontSize: 11,
+  heroWrap: {
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  heroTitle: {
+    ...typeScale.h1,
+    color: c.textPrimary,
     marginTop: spacing.sm,
   },
-  legalNote: {
+  heroTagline: {
+    ...typeScale.caption,
     color: c.textMuted,
-    ...typeScale.caption,
-    fontSize: 10,
-    marginTop: spacing.xs,
+    textAlign: "center",
   },
-  legalLink: {
-    color: c.textSecondary,
-    ...typeScale.caption,
-    fontSize: 11,
-    textDecorationLine: "underline",
+  input: {
+    backgroundColor: c.cardSoft,
+    borderColor: c.border,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    color: c.textPrimary,
+    ...typeScale.body,
+    fontSize: 14,
+  },
+  signInButton: {
+    backgroundColor: c.primary,
+    borderRadius: radius.md,
+    paddingVertical: spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  signInButtonText: {
+    color: c.onPrimary,
+    ...typeScale.bodyStrong,
+    fontSize: 14,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   dividerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: spacing.sm,
+    marginVertical: spacing.xs,
   },
   dividerLine: {
     flex: 1,
@@ -424,25 +482,6 @@ const createStyles = (c: ThemeColors) => StyleSheet.create({
     ...typeScale.caption,
     fontSize: 11,
     marginHorizontal: spacing.sm,
-  },
-  devInput: {
-    backgroundColor: c.cardSoft,
-    borderColor: c.border,
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    color: c.textPrimary,
-    ...typeScale.caption,
-    fontSize: 13,
-  },
-  devSignInButton: {
-    backgroundColor: c.primary,
-    borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    alignItems: "center",
-    justifyContent: "center",
   },
   socialAuthButton: {
     backgroundColor: c.cardSoft,
@@ -468,5 +507,18 @@ const createStyles = (c: ThemeColors) => StyleSheet.create({
     ...typeScale.caption,
     fontWeight: "600",
     fontSize: 12,
+  },
+  legal: {
+    color: c.textMuted,
+    ...typeScale.caption,
+    fontSize: 11,
+    marginTop: spacing.sm,
+    textAlign: "center",
+  },
+  legalLink: {
+    color: c.textSecondary,
+    ...typeScale.caption,
+    fontSize: 11,
+    textDecorationLine: "underline",
   },
 });
