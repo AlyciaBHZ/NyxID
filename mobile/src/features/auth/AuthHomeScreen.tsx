@@ -50,7 +50,7 @@ function resolveSocialAuthError(error: string | undefined): string {
     case "social_auth_profile":
       return "Unable to complete social sign-in.";
     default:
-      return "Social sign-in failed. Please try again.";
+      return error || "Social sign-in failed. Please try again.";
   }
 }
 
@@ -68,13 +68,17 @@ function parseSocialCallback(url: string): SocialCallback | null {
         ? providerRaw
         : undefined;
     if (statusRaw !== "success" && statusRaw !== "error") {
-      return null;
+      return {
+        status: "error",
+        error: "social_auth_unknown",
+        provider,
+      };
     }
 
     if (statusRaw === "error") {
       return {
         status: "error",
-        error: parsed.searchParams.get("error") ?? undefined,
+        error: parsed.searchParams.get("error") ?? parsed.searchParams.get("message") ?? undefined,
         provider,
       };
     }
@@ -90,8 +94,11 @@ function parseSocialCallback(url: string): SocialCallback | null {
         Number.isFinite(expiresInParsed) && expiresInParsed > 0 ? expiresInParsed : undefined,
       provider,
     };
-  } catch {
-    return null;
+  } catch (e) {
+    return {
+      status: "error",
+      error: e instanceof Error ? e.message : "social_auth_unknown",
+    };
   }
 }
 
