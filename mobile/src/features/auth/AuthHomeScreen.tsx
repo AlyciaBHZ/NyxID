@@ -199,46 +199,37 @@ export function AuthHomeScreen({ navigation }: Props) {
     return () => clearTimeout(timer);
   }, [toast]);
 
+  const resetSocialState = useCallback(() => {
+    if (isMountedRef.current) {
+      setIsSocialAuthPending(false);
+      setPendingSocialProvider(null);
+    }
+  }, []);
+
   const handleSocialCallback = useCallback(
     async (url: string) => {
       if (lastHandledSocialUrlRef.current === url) {
         return;
       }
+      lastHandledSocialUrlRef.current = url;
 
       const callback = parseSocialCallback(url);
       if (!callback) {
         setLoginError("Unable to complete social sign-in.");
-        if (isMountedRef.current) {
-          setIsSocialAuthPending(false);
-          setPendingSocialProvider(null);
-        }
+        resetSocialState();
         return;
       }
 
-      lastHandledSocialUrlRef.current = url;
-
       if (callback.status === "error") {
         setLoginError(resolveSocialAuthError(callback.error));
-        if (isMountedRef.current) {
-          setIsSocialAuthPending(false);
-          setPendingSocialProvider(null);
-        }
+        resetSocialState();
         return;
       }
 
       if (!callback.accessToken) {
         setLoginError("Missing social auth access token.");
-        if (isMountedRef.current) {
-          setIsSocialAuthPending(false);
-          setPendingSocialProvider(null);
-        }
+        resetSocialState();
         return;
-      }
-
-      if (isMountedRef.current) {
-        setLoginError(null);
-        setIsSocialAuthPending(true);
-        setPendingSocialProvider((current) => callback.provider ?? current);
       }
 
       try {
@@ -253,13 +244,10 @@ export function AuthHomeScreen({ navigation }: Props) {
       } catch (error) {
         setLoginError(resolveErrorMessage(error));
       } finally {
-        if (isMountedRef.current) {
-          setIsSocialAuthPending(false);
-          setPendingSocialProvider(null);
-        }
+        resetSocialState();
       }
     },
-    [signInWithSession]
+    [signInWithSession, resetSocialState]
   );
 
   useEffect(() => {
