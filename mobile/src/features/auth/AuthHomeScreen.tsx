@@ -206,7 +206,7 @@ export function AuthHomeScreen({ navigation }: Props) {
       lastHandledSocialUrlRef.current = url;
 
       if (callback.status === "error") {
-        showToast(resolveSocialAuthError(callback.error), "error");
+        setLoginError(resolveSocialAuthError(callback.error));
         if (isMountedRef.current) {
           setIsSocialAuthPending(false);
           setPendingSocialProvider(null);
@@ -215,7 +215,7 @@ export function AuthHomeScreen({ navigation }: Props) {
       }
 
       if (!callback.accessToken) {
-        showToast("Missing social auth access token.", "error");
+        setLoginError("Missing social auth access token.");
         if (isMountedRef.current) {
           setIsSocialAuthPending(false);
           setPendingSocialProvider(null);
@@ -239,7 +239,7 @@ export function AuthHomeScreen({ navigation }: Props) {
               : undefined,
         });
       } catch (error) {
-        showToast(resolveAuthError(error), "error");
+        setLoginError(resolveErrorMessage(error));
       } finally {
         if (isMountedRef.current) {
           setIsSocialAuthPending(false);
@@ -271,7 +271,7 @@ export function AuthHomeScreen({ navigation }: Props) {
     }
 
     if (isMountedRef.current) {
-      setToast(null);
+      setLoginError(null);
       setIsSocialAuthPending(true);
       setPendingSocialProvider(provider);
     }
@@ -289,14 +289,13 @@ export function AuthHomeScreen({ navigation }: Props) {
       }
 
       if (result.type === "cancel" || result.type === "dismiss") {
-        showToast("Social sign-in was cancelled.", "info");
+        setLoginError("Social sign-in was cancelled.");
         return;
       }
 
-      showToast("Unable to complete social sign-in.", "error");
+      setLoginError("Unable to complete social sign-in.");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to start social sign-in.";
-      showToast(message, "error");
+      setLoginError(resolveErrorMessage(error));
     } finally {
       if (isMountedRef.current) {
         setIsSocialAuthPending(false);
