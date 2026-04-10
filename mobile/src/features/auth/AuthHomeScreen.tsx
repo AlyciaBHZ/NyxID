@@ -97,7 +97,8 @@ function parseSocialCallback(url: string): SocialCallback | null {
 
 function PortalMarkLogo() {
   return (
-    <Svg width={80} height={80} viewBox="0 0 130 130" fill="none">
+    <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: "#10101A", alignItems: "center", justifyContent: "center" }}>
+    <Svg width={72} height={72} viewBox="0 0 130 130" fill="none">
       <Defs>
         <LinearGradient id="pl_o" gradientUnits="userSpaceOnUse" x1="10" y1="65" x2="120" y2="65">
           <Stop offset="0" stopColor="#A78BFA" />
@@ -124,6 +125,7 @@ function PortalMarkLogo() {
       <Circle cx={39} cy={63} r={1} fill="#C4B5FD" opacity={0.5} />
       <Circle cx={25} cy={69} r={1} fill="#C4B5FD" opacity={0.31} />
     </Svg>
+    </View>
   );
 }
 
