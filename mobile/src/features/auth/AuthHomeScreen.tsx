@@ -9,6 +9,7 @@ import type { RootStackParamList } from "../../app/AppNavigator";
 import { ScreenContainer } from "../../components/ScreenContainer";
 import { ToastKind, ToastOverlay, ToastState } from "../../components/ToastOverlay";
 import { mobileApi } from "../../lib/api/mobileApi";
+import { resolveErrorMessage } from "../../lib/api/errorMessages";
 import { useAuthSession } from "./AuthSessionContext";
 import { useTheme } from "../../theme/ThemeContext";
 import type { ThemeColors } from "../../theme/mobileTheme";
@@ -313,7 +314,7 @@ export function AuthHomeScreen({ navigation }: Props) {
         accessTokenExpiresAt: Date.now() + Math.floor(result.expiresIn * 1000),
       });
     } catch (error) {
-      showToast(resolveAuthError(error), "error");
+      showToast(resolveErrorMessage(error), "error");
     } finally {
       if (isMountedRef.current) {
         setIsEmailAuthPending(false);
