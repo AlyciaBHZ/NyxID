@@ -430,6 +430,7 @@ const createStyles = (c: ThemeColors) => StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     marginBottom: spacing.sm,
+    paddingTop: spacing.huge,
   },
   heroTitle: {
     ...typeScale.h1,
