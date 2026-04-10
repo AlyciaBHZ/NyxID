@@ -200,6 +200,11 @@ export function AuthHomeScreen({ navigation }: Props) {
 
       const callback = parseSocialCallback(url);
       if (!callback) {
+        setLoginError("Unable to complete social sign-in.");
+        if (isMountedRef.current) {
+          setIsSocialAuthPending(false);
+          setPendingSocialProvider(null);
+        }
         return;
       }
 
@@ -224,7 +229,7 @@ export function AuthHomeScreen({ navigation }: Props) {
       }
 
       if (isMountedRef.current) {
-        setToast(null);
+        setLoginError(null);
         setIsSocialAuthPending(true);
         setPendingSocialProvider((current) => callback.provider ?? current);
       }
