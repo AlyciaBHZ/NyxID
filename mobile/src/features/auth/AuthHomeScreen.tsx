@@ -169,6 +169,7 @@ export function AuthHomeScreen({ navigation }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isEmailAuthPending, setIsEmailAuthPending] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const { signInWithSession } = useAuthSession();
   const isMountedRef = useRef(true);
   const lastHandledSocialUrlRef = useRef<string | null>(null);
@@ -305,7 +306,7 @@ export function AuthHomeScreen({ navigation }: Props) {
   const handleEmailLogin = async () => {
     if (isEmailAuthPending || !email.trim() || !password) return;
     setIsEmailAuthPending(true);
-    setToast(null);
+    setLoginError(null);
     try {
       const result = await mobileApi.loginWithPassword({ email: email.trim(), password });
       await signInWithSession({
@@ -314,7 +315,7 @@ export function AuthHomeScreen({ navigation }: Props) {
         accessTokenExpiresAt: Date.now() + Math.floor(result.expiresIn * 1000),
       });
     } catch (error) {
-      showToast(resolveErrorMessage(error), "error");
+      setLoginError(resolveErrorMessage(error));
     } finally {
       if (isMountedRef.current) {
         setIsEmailAuthPending(false);
@@ -345,7 +346,7 @@ export function AuthHomeScreen({ navigation }: Props) {
             placeholder="Email"
             placeholderTextColor={colors.textMuted}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(v) => { setEmail(v); setLoginError(null); }}
             keyboardType="email-address"
             autoCapitalize="none"
             autoComplete="email"
@@ -356,11 +357,16 @@ export function AuthHomeScreen({ navigation }: Props) {
             placeholder="Password"
             placeholderTextColor={colors.textMuted}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(v) => { setPassword(v); setLoginError(null); }}
             secureTextEntry
             autoComplete="current-password"
             editable={!isAnyPending}
           />
+          {loginError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{loginError}</Text>
+            </View>
+          )}
           <Pressable
             onPress={() => void handleEmailLogin()}
             disabled={isAnyPending || !email.trim() || !password}
@@ -468,6 +474,19 @@ const createStyles = (c: ThemeColors) => StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.5,
+  },
+  errorBanner: {
+    backgroundColor: c.dangerSoftBg,
+    borderWidth: 1,
+    borderColor: c.riskHigh.border,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  errorText: {
+    color: c.danger,
+    ...typeScale.caption,
+    lineHeight: 18,
   },
   dividerRow: {
     flexDirection: "row",
