@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, Link } from "@tanstack/react-router";
@@ -152,6 +152,21 @@ export function AuthFlow({
   const loginEmailRef = useRef<HTMLInputElement>(null);
   const inviteInputRef = useRef<HTMLInputElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  // Refs + state for animating the register slider's height to the active panel
+  const panel1Ref = useRef<HTMLDivElement>(null);
+  const panel2Ref = useRef<HTMLDivElement>(null);
+  const [activePanelHeight, setActivePanelHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (panel === 0) return;
+    const el = panel === 2 ? panel2Ref.current : panel1Ref.current;
+    if (!el) return;
+    const update = () => setActivePanelHeight(el.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [panel, inviteError, emailAuthEnabled]);
 
   // -- Forms --
   const loginForm = useForm<LoginFormData>({
@@ -462,13 +477,16 @@ export function AuthFlow({
         /* ================================================================
            Register View (2-panel slider: methods → email form)
            ================================================================ */
-        <div className="overflow-hidden">
+        <div
+          className="overflow-hidden transition-[height] duration-300 ease-in-out"
+          style={{ height: activePanelHeight ?? undefined }}
+        >
         <div
           className="flex w-[200%] items-start transition-transform duration-300 ease-in-out"
           style={{ transform: showEmailForm ? "translateX(-50%)" : "translateX(0)" }}
         >
         {/* Register Panel 1 — Method Selection */}
-        <div className="w-1/2 shrink-0 px-7 pt-8 pb-7">
+        <div ref={panel1Ref} className="w-1/2 shrink-0 self-start px-7 pt-8 pb-7">
           <div className="mb-7 text-center">
             <h1
               className="font-display text-2xl font-semibold tracking-tight"
@@ -646,7 +664,8 @@ export function AuthFlow({
 
         {/* Register Panel 2 — Email Registration */}
         <div
-          className="w-1/2 shrink-0 px-7 pt-8 pb-7"
+          ref={panel2Ref}
+          className="w-1/2 shrink-0 self-start px-7 pt-8 pb-7"
           onKeyDown={(e) => {
             if (e.key === "Escape") slideToPanel(1);
           }}
