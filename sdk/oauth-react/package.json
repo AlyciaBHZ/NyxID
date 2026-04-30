@@ -32,7 +32,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "react": ">=18"
+    "react": "^19.2.5"
   },
   "dependencies": {
     "@nyxids/oauth-core": "^0.4.0"
